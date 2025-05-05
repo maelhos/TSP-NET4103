@@ -3,8 +3,8 @@
 ## Structure du projet
 
 - Les scripts Python se trouvent dans le répertoire `src/`.
-- Le compte rendu du projet est disponible dans le répertoire `compte-rendu/`.
-- Les données du dataset Facebook100 doivent être décompressées dans le répertoire `src/data/`.
+- Le compte rendu du projet est disponible dans le répertoire courant.
+- Les données du dataset Facebook100 doivent être décompressées dans le répertoire `data/`.
 
 ## Instructions pour l'exécution
 
@@ -25,4 +25,5 @@ Une fois l'environnement configuré, vous pouvez exécuter les scripts Python de
 
 ## Remarque
 
-Assurez-vous que le dataset Facebook100 est correctement décompressé dans `src/data/` avant d'exécuter les scripts nécessitant ces données.
+Assurez-vous que le dataset Facebook100 est correctement décompressé dans `data/` avant d'exécuter les scripts nécessitant ces données.
+L'exécution doit se faire depuis le répertoire courant.
