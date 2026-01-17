@@ -229,11 +229,13 @@ Il existe un outil pour mesurer ce que l'on souhaite : la conductance. La défin
 
 On se propose alors de simplement calculer les communautés (dans ce cas-ci, j'ai choisi l'algorithme de Louvain avec une résolution à $2$ pour préférer les plus petites communautés), puis leur conductance. On choisit alors expérimentalement un threshold de conductance pour déclarer une communauté comme "gated" et on regarde le trait dominant de cette communauté.
 
+La pureté mesure à quel point le trait dominant est présent dans la communauté (à quelle point la secte est radicale\dots).
+
 \begin{table}[h]
     \centering
     \begin{tabular}{|l|c|c|c|l|c|}
     \hline
-    \textbf{Universitée} & \textbf{Rang} & \textbf{Conductance} & \textbf{Taille} & \textbf{Caractéristique en commun} & \textbf{Pureté} \\ \hline
+    \textbf{Université} & \textbf{Rang} & \textbf{Conductance} & \textbf{Taille} & \textbf{Trait dominant} & \textbf{Pureté} \\ \hline
     \multirow{3}{*}{Caltech} 
      & 1 & 0.413 & 101 & Dorm 169 & 0.96 \\
      & 2 & 0.437 & 76 & Dorm 168 & 0.95 \\
