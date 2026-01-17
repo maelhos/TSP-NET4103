@@ -218,86 +218,40 @@ Cela n'est pas très étonnant non plus, car notre score ne prend pas en compte 
 Il n'y a qu'une chance sur deux de se tromper sur le genre (enfin... presque...) alors qu'il n'y a qu'un seul "Major index" juste parmi une liste non binaire.
 Il faudrait donc une métrique plus adaptée afin de comparer plus justement.
 
-\section{Concentrateurs}
+\section{Sectes / communautées fermées}
 
-Nous nous intéressons ici aux concentrateurs ou hubs en anglais. Il s'agit grossièrement des individus avec beaucoup d'amis, même si cette définition n'est pas forcément la plus intéressante.
-Ce qui nous intéresse, ce n'est pas juste les individus avec beaucoup d'amis, ce sont plutôt ceux qui participent fortement à la connectivité globale.
-Dans le cadre d'un réseau social à l'échelle d'un campus, ce phénomène est peut-être moins prépondérant qu'en pratique (avec les célébrités et les personnalités politiques), mais cette étude reste tout de même intéressante.
+Nous allons nous pencher sur les communautés fermées (gated communities en anglais). Ce sujet a a priori un réel intérêt, car il permettrait potentiellement de détecter des communautés "potentiellement problématiques" purement algorithmiquement sans avoir à analyser le contenu.
 
-L'hypothèse que l'on émet est que dans le cadre de ce dataset, les hubs risquent d'être les individus avec le plus d'amis, même si dans la réalité, sur Facebook complet, potentiellement pas.
-Dans un premier temps, nous allons proposer un algorithme afin de calculer le top $n\textrm{--}\texttt{HUB}$.
-C'est-à-dire les $n$ individus les plus importants pour la connectivité globale. Comme il est trivial de calculer les $n$ individus avec le plus d'amis, on pourra par la suite s'intéresser à la taille de l'intersection de ces deux ensembles proportionnellement à $n$.
+L'hypothèse que l'on émet dans le cadre de ce dataset est assez simple : une "gated community" est un ensemble de personnes qui ont beaucoup de liens entre eux, mais peu de lien vers "les autres". On s'attend à ce que ces communautés aient beaucoup de caractéristiques en commun, notre but est donc de vérifier/infirmer cela.
+En particulier, on s'attend à ce que des caractéristiques comme année ou dortoir soient celles qui forment le plus de gate community.
 
-Comme en pratique, on aura des représentations creuses sur des graphes très grands, on ne peut utiliser les puissances de la matrice d'adjacence.
-Nous proposons une méthode Monte-Carlo basée sur l'échantillonnage.
+Il existe un outil pour mesurer ce que l'on souhaite : la conductance. La définition formelle de la conductance implique de parler de stabilité pour des chaînes de Markov, mais concrètement, dans notre cas, cet outil va nous permettre de mesurer le taux de "fuites" d'une communauté : plus celui-ci est bas, plus elle est gated. 
 
-Soit un graph $G = (V, E)$, et deux paramètres $(k, n) \in \mathbb N^2, n \le |V|$:
+On se propose alors de simplement calculer les communautés (dans ce cas-ci, j'ai choisi l'algorithme de Louvain avec une résolution à $2$ pour préférer les plus petites communautés), puis leur conductance. On choisit alors expérimentalement un threshold de conductance pour déclarer une communauté comme "gated" et on regarde le trait dominant de cette communauté.
 
-\begin{itemize}
-    \item On initialise un tableau de taille $|V|$ rempli de $0$
-    \item Répéter $k$ fois:
-    \begin{itemize}
-        \item Choisir $(n_1, n_2) \in V^2$ aléatoirement
-        \item En utilisant l'algorithme de Dijkstra pour calculer les chemins les plus courts entre $n_1$ et $n_2$
-        \item Incrémenter le score dans le tableau de chaque nœud sur le chemin appart $n_1$ et $n_2$ pour chaque occurrence sur les chemins les plus courts
-    \end{itemize}
-    \item Retourner les $n$ premiers hubs au sens de ce score
-\end{itemize}
-
-Cet algorithme a une complexité de: $\mathcal O(k(|E| + |V| \log(|V|)))$, la convergence théorique de cet algorithme en théorie n'est probablement pas évidente, mais les résultats expérimentaux tendent à montrer que l'algorithme convergent.
-Nous avons fait le choix de considérer le cas général où il existe plusieurs plus courts chemins. Il faut donc gérer ce cas.
-Aussi, nous avons choisi le plus court chemin, car il représente bien quelqu'un de social et polyvalent qui n'est pas juste membre d'une communauté très connexe.
-L'idée de plus court chemin est de "pénaliser" le fait d'être dans une communauté très connexe, car dans ce cas, les plus courts chemins ont moins de chance de passer par un individu, même s'il a beaucoup d'amis.
-On pourrait aussi considérer tous les chemins en utilisant Floyd-Warshall mais la complexité monte en $\mathcal O(|V|^3)$
-
-
-\begin{tabular}{ |p{3.5cm}||p{1cm}|p{2cm}|p{3cm}|  }
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|l|c|c|c|l|c|}
     \hline
-    \multicolumn{4}{|c|}{Corrélation top-amis vs top-hub} \\
-    \hline
-    Réseau & k & top-n & Corrélation \\
-    \hline
-    Caltech          & 200  & 10 & 0.5 \\
-                     & 800  & 10 & 0.7 \\
-                     & 1600 & 10 & 0.6 \\
-                     & 200  & 100 & 0.7 \\
-                     & 800  & 100 & 0.78 \\
-                     & 1600 & 100 & 0.8 \\
-                     & 200  & 1000 & 0.77 \\
-                     & 800  & 1000 & 0.77 \\
-                     & 1600 & 1000 & 0.77 \\
-    \hhline{|=|=|=|=|}
-    MIT              & 200  & 10 & 0.4 \\
-                     & 800  & 10 & 0.5 \\
-                     & 1600 & 10 & 0.6 \\
-                     & 200  & 100 & 0.44 \\
-                     & 800  & 100 & 0.63 \\
-                     & 1600 & 100 & 0.61 \\
-                     & 200  & 1000 & 0.61 \\
-                     & 800  & 1000 & 0.72 \\
-                     & 1600 & 1000 & 0.76 \\
-    \hhline{|=|=|=|=|}
-    Johns Hopkins    & 200  & 10 & 0.2 \\
-                     & 800  & 10 & 0.3 \\
-                     & 1600 & 10 & 0.4 \\
-                     & 200  & 100 & 0.41 \\
-                     & 800  & 100 & 0.51 \\
-                     & 1600 & 100 & 0.54 \\
-                     & 200  & 1000 & 0.64 \\
-                     & 800  & 1000 & 0.74 \\
-                     & 1600 & 1000 & 0.77 \\
-    \hline
-\end{tabular}
+    \textbf{Universitée} & \textbf{Rang} & \textbf{Conductance} & \textbf{Taille} & \textbf{Caractéristique en commun} & \textbf{Pureté} \\ \hline
+    \multirow{3}{*}{Caltech} 
+     & 1 & 0.413 & 101 & Dorm 169 & 0.96 \\
+     & 2 & 0.437 & 76 & Dorm 168 & 0.95 \\
+     & 3 & 0.453 & 93 & Dorm 166 & 0.88 \\ \hline
+    \multirow{3}{*}{MIT} 
+     & 1 & 0.263 & 916 & Year 2009 & 0.95 \\
+     & 2 & 0.286 & 5 & Major 6 & 0.75 \\
+     & 3 & 0.309 & 40 & Dorm 236 & 0.89 \\ \hline
+    \multirow{3}{*}{Johns Hopkins} 
+     & 1 & 0.173 & 880 & Year 2009 & 0.98 \\
+     & 2 & 0.227 & 236 & Major 217 & 0.90 \\
+     & 3 & 0.435 & 523 & Year 2006 & 0.29 \\ \hline
+    \end{tabular}
+\end{table}
 
-Selon le graphe, on remarque que la convergence est plus ou moins rapide, par exemple pour Caltech celle-ci est très rapide.
-Alors que pour MIT Johns Hopkins elle est un peu plus lente.
-
-Nous allons nous concentrer sur les valeurs de $k$ les plus grandes (donc $k = 1600$), car elles sont les plus représentatives. Les valeurs de $k$ plus basses sont la juste pour étudier la convergence.
-On remarque que pour $n = 1000$ les trois réseaux ont le même comportement. Il s'agit là d'un comportement limite, on a pris "trop" d'éléments du top avec le plus d'amis et on n'a donc plus vraiment des hubs.
-
-La donnée la plus intéressante est pour $n = 100$, on a alors $0.8$ pour Caltech, $0.61$ pour MIT et $0.54$ pour Johns Hopkins. Les valeurs plus proches de $1$ signifient que les concentrateurs sont les individus avec le plus d'amis et les valeurs plus proches de $0$ l'inverse.
-Une manière de l'interpréter: la corrélation est plus faible, donc c'est que des individus avec moins d'amis font plus de goulots d'étranglement entre différentes composantes connexes.
-Une conclusion possible est que les valeurs plus proches de $0$ indiquent alors une école plus cosmopolite et avec des communautés plus ouvertes.
+On remarque effectivement que les caractéristiques en commun sont souvent soit une année soit un dortoir. Notre hypothèse est donc plutôt vérifiée. 
+On remarque pour autant qu'à Caltech les gated communities se font plus par dortoir que par année. Au MIT, mis à part l'année 2009 (pas très intéressante), la majeure 6 qui est en fait "Electrical Engineering and Computer Science (EECS)"\dots Pas si étonnant. Et pour John Hopkins, la majeure 217 "Biomedical Engineering (BME)" est connue pour être la meilleure aux US en biomédical\dots
+Les tailles varient aussi beaucoup, mais cela est probablement lié au fait que, dans les écoles plus petites, on connaît une plus grande proportion des gens (biais communautaire).
 
 
 \end{document}
